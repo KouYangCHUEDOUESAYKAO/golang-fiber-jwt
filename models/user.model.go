@@ -3,15 +3,15 @@ package models
 import (
 	"time"
 
-	"github.com/go-playground/validator/v10"
-	"github.com/google/uuid"
+	"github.com/go-playground/validator"
 )
 
 type User struct {
-	ID        *uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primary_key"`
+	// ID        *uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primary_key"`
+	Id        uint       `gorm:"index;column:id;type:int(11) unsigned;primary_key;AUTO_INCREMENT" json:"id"`
 	Name      string     `gorm:"type:varchar(100);not null"`
-	Email     string     `gorm:"type:varchar(100);uniqueIndex;not null"`
-	Password  string     `gorm:"type:varchar(100);not null"`
+	Email     string     `gorm:"index;type:varchar(100);uniqueIndex;not null"`
+	Password  string     `gorm:"index;type:varchar(100);not null"`
 	Role      *string    `gorm:"type:varchar(50);default:'user';not null"`
 	Provider  *string    `gorm:"type:varchar(50);default:'local';not null"`
 	Photo     *string    `gorm:"not null;default:'default.png'"`
@@ -28,8 +28,13 @@ type SignUpInput struct {
 	Photo           string `json:"photo"`
 }
 
+type SignInInput struct {
+	Email    string `json:"email"  validate:"required"`
+	Password string `json:"password"  validate:"required"`
+}
+
 type UserResponse struct {
-	ID        uuid.UUID `json:"id,omitempty"`
+	Id        uint      `json:"id,omitempty"`
 	Name      string    `json:"name,omitempty"`
 	Email     string    `json:"email,omitempty"`
 	Role      string    `json:"role,omitempty"`
@@ -41,7 +46,7 @@ type UserResponse struct {
 
 func FilterUserRecord(user *User) UserResponse {
 	return UserResponse{
-		ID:        *user.ID,
+		Id:        user.Id,
 		Name:      user.Name,
 		Email:     user.Email,
 		Role:      *user.Role,

@@ -27,7 +27,7 @@ func main() {
 	app.Mount("/api", micro)
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:4200",
+		AllowOrigins:     "http://localhost:3000",
 		AllowHeaders:     "Origin, Content-Type, Accept",
 		AllowMethods:     "GET, POST, PUT, DELETE",
 		AllowCredentials: true,
@@ -36,7 +36,7 @@ func main() {
 	micro.Route("/auth", func(router fiber.Router) {
 		router.Post("/register", controllers.SignUpUser)
 		router.Post("/login", controllers.SignInUser)
-		router.Post("/logout", middleware.DeserializeUser, controllers.LogoutUser)
+		router.Get("/logout", middleware.DeserializeUser, controllers.LogoutUser)
 	})
 
 	micro.Get("/users/me", middleware.DeserializeUser, controllers.GetMe)

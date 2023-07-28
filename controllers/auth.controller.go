@@ -40,6 +40,17 @@ func SignUpUser(c *fiber.Ctx) error {
 		Photo:    &payload.Photo,
 	}
 
+	var user models.User
+
+	res := initializers.DB.Where("email = ?", payload.Email).Find(&user)
+	if res.RowsAffected > 0 {
+		c.Status(fiber.StatusBadRequest)
+		return c.JSON(fiber.Map{
+			"status":  "fail",
+			"message": "Your Register Already",
+		})
+	}
+
 	result := initializers.DB.Create(&newUser)
 
 	if result.Error != nil && strings.Contains(result.Error.Error(), "duplicate key value violates unique") {
@@ -50,7 +61,7 @@ func SignUpUser(c *fiber.Ctx) error {
 }
 
 func SignInUser(c *fiber.Ctx) error {
-	var payload *models.SignUpInput
+	var payload *models.SignInInput
 
 	if err := c.BodyParser(&payload); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "message": err.Error()})
@@ -62,6 +73,7 @@ func SignInUser(c *fiber.Ctx) error {
 	}
 
 	var user models.User
+
 	result := initializers.DB.First(&user, "email = ?", strings.ToLower(payload.Email))
 	if result.Error != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "message": "Invalid email or Password"})
@@ -74,12 +86,12 @@ func SignInUser(c *fiber.Ctx) error {
 
 	config, _ := initializers.LoadConfig(".")
 
-	tokenByte := jwt.New(jwt.SigningMethodES256)
+	tokenByte := jwt.New(jwt.SigningMethodHS256)
 
 	now := time.Now().UTC()
 	claims := tokenByte.Claims.(jwt.MapClaims)
 
-	claims["sub"] = user.ID
+	claims["sub"] = user.Id
 	claims["exp"] = now.Add(config.JwtExpiresInt).Unix()
 	claims["iat"] = now.Unix()
 	claims["nbf"] = now.Unix()
